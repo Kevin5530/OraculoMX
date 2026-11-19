@@ -33,11 +33,8 @@ export default function GraficaProbabilidades({ model }: { model?: Probabilities
     value: model?.[result.key] ?? 0,
   }));
 
-  // El centro destaca el resultado más probable e informa si comparten el máximo.
   const highest = Math.max(...rows.map((row) => row.value));
-
   const leaders = rows.filter((row) => row.value === highest);
-
   const leader = leaders[0]!;
   const tied = leaders.length > 1;
 
@@ -57,8 +54,8 @@ export default function GraficaProbabilidades({ model }: { model?: Probabilities
                   data={rows}
                   dataKey="value"
                   nameKey="label"
-                  innerRadius={72}
-                  outerRadius={96}
+                  innerRadius="64%"
+                  outerRadius="88%"
                   startAngle={90}
                   endAngle={-270}
                   stroke="none"
@@ -105,7 +102,6 @@ export default function GraficaProbabilidades({ model }: { model?: Probabilities
                 }}
                 aria-hidden="true"
               />
-
               {row.label}
             </span>
 
