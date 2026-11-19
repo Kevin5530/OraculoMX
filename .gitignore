@@ -1,0 +1,27 @@
+# Dependencias y resultados generados
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Configuración local. La plantilla sí se comparte.
+.env
+.env.*
+!.env.example
+
+# Registros de ejecución
+logs/
+*.log
+
+# Archivos del sistema y del editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
