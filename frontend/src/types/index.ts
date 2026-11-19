@@ -69,3 +69,44 @@ export interface PredictionResponse {
   confidence: number;
   model?: Probabilities;
 }
+
+/** Acciones soportadas por el analista de IA */
+export type AIAnalysisAction = "summary" | "executive_brief" | "question" | "model_limits";
+
+/** Origen de la respuesta de IA */
+export type AIAnalysisSource = "gemini" | "fallback" | "guardrail";
+
+/** Petición hacia POST /ai/match-analysis */
+export interface AIAnalysisRequest {
+  home: string;
+  away: string;
+  prob_local?: number;
+  prob_empate?: number;
+  prob_visitante?: number;
+  descanso_local?: number | string;
+  descanso_visitante?: number | string;
+  racha_local?: string;
+  racha_visitante?: string;
+  h2h?: string;
+  action?: AIAnalysisAction;
+  question?: string;
+}
+
+/** Secciones estructuradas de la respuesta */
+export interface AIAnalysisSections {
+  pronostico: string;
+  factores: string;
+  alcance: string;
+}
+
+/** Respuesta de POST /ai/match-analysis */
+export interface AIAnalysisResponse {
+  home: string;
+  away: string;
+  action: AIAnalysisAction;
+  cached: boolean;
+  source: AIAnalysisSource;
+  model_used?: string | null;
+  sections: AIAnalysisSections;
+  answer: string;
+}

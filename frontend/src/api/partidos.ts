@@ -1,8 +1,19 @@
 import axios from "axios";
 import { apiClient } from "./cliente";
 import { obtenerEscudoEquipo } from "@/lib/escudosEquipos";
-import type { Fatigue, HeadToHead, MatchResult, PredictionRequest, PredictionResponse, StandingRow, Standings, Team, TeamForm } from "@/types";
-
+import type {
+  AIAnalysisRequest,
+  AIAnalysisResponse,
+  Fatigue,
+  HeadToHead,
+  MatchResult,
+  PredictionRequest,
+  PredictionResponse,
+  StandingRow,
+  Standings,
+  Team,
+  TeamForm,
+} from "@/types";
 // El frontend conserva sus tipos internos y traduce los nombres exigidos por la API.
 function matchBody(request: PredictionRequest) {
   return { Home: request.homeTeamId, Away: request.awayTeamId };
@@ -33,13 +44,25 @@ interface ApiStanding {
   points: number;
 }
 
+export interface TableFilters {
+  season?: string;
+  tournament?: string;
+}
+
 // Conserva temporada y torneo para indicar el alcance de las posiciones mostradas.
-export async function obtenerTablaGeneral(signal?: AbortSignal): Promise<Standings> {
+export async function obtenerTablaGeneral(
+  filters?: TableFilters,
+  signal?: AbortSignal,
+): Promise<Standings> {
+  const params: Record<string, string> = {};
+  if (filters?.season?.trim()) params.season = filters.season.trim();
+  if (filters?.tournament?.trim()) params.tournament = filters.tournament.trim();
+
   const { data } = await apiClient.get<{
     season: string;
     tournament: string;
     standings: ApiStanding[];
-  }>("/stats/table", { signal });
+  }>("/stats/table", { params, signal });
 
   if (typeof data?.season !== "string" || typeof data.tournament !== "string" ||
       !Array.isArray(data.standings)) {
@@ -156,11 +179,49 @@ function readStreak(data: ApiStreak | undefined): TeamForm {
   return { results: data.racha_resultados, avgGoalsFor: data.promedio_gf, avgGoalsAgainst: data.promedio_gc };
 }
 
-export async function obtenerRacha(request: PredictionRequest, signal?: AbortSignal) {
+export async function obtenerRacha(
+  request: PredictionRequest,
+  days = 5,
+  signal?: AbortSignal,
+) {
+  const safeDays = Number.isInteger(days) && days > 0 ? days : 5;
   const { data } = await apiClient.post<{ local: ApiStreak; visitante: ApiStreak }>(
-    "/stats/streak", { ...matchBody(request), days: 5 }, { signal },
+    "/stats/streak",
+    { ...matchBody(request), days: safeDays },
+    { signal },
   );
   return { home: readStreak(data?.local), away: readStreak(data?.visitante) };
+}
+
+export async function consultarAnalisisIA(
+  request: AIAnalysisRequest,
+  signal?: AbortSignal,
+): Promise<AIAnalysisResponse> {
+  if (!request.home?.trim() || !request.away?.trim() || request.home === request.away) {
+    throw new Error("Selecciona dos equipos distintos antes de solicitar el análisis.");
+  }
+
+  const { data } = await apiClient.post<AIAnalysisResponse>(
+    "/ai/match-analysis",
+    {
+      ...request,
+      action: request.action ?? "summary",
+      question: request.question?.trim() ?? "",
+    },
+    { signal },
+  );
+
+  if (
+    typeof data?.answer !== "string" ||
+    !data.answer.trim() ||
+    typeof data?.sections?.pronostico !== "string" ||
+    typeof data?.sections?.factores !== "string" ||
+    typeof data?.sections?.alcance !== "string"
+  ) {
+    throw new Error("La API devolvió un análisis de IA con formato inesperado.");
+  }
+
+  return data;
 }
 
 // Centraliza los errores de red y de formato para mostrar mensajes consistentes.

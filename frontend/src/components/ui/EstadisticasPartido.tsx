@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Fatigue, HeadToHead } from "@/types";
 
-/** Muestra los días de descanso consultados. */
 export function TarjetaDescanso({
   fatigue,
   home,
@@ -11,24 +10,42 @@ export function TarjetaDescanso({
   home: string;
   away: string;
 }) {
+  const maxDays = Math.max(fatigue.homeRestDays, fatigue.awayRestDays, 1);
+  const homePct = Math.min(100, Math.round((fatigue.homeRestDays / maxDays) * 100));
+  const awayPct = Math.min(100, Math.round((fatigue.awayRestDays / maxDays) * 100));
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Fatiga</CardTitle>
+    <Card className="border-slate-700 bg-slate-900/90">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-bold text-slate-200">
+          Recuperación y Descanso
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-1 text-sm">
-        <p>
-          {home}: <b>{fatigue.homeRestDays}</b> días de descanso
-        </p>
-        <p>
-          {away}: <b>{fatigue.awayRestDays}</b> días de descanso
-        </p>
+      <CardContent className="space-y-3 text-xs">
+        <div className="space-y-1">
+          <div className="flex justify-between text-slate-300">
+            <span>{home}</span>
+            <strong>{fatigue.homeRestDays} días</strong>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className="h-full rounded-full bg-emerald-400" style={{ width: `${homePct}%` }} />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex justify-between text-slate-300">
+            <span>{away}</span>
+            <strong>{fatigue.awayRestDays} días</strong>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className="h-full rounded-full bg-indigo-400" style={{ width: `${awayPct}%` }} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-/** H2H: barra proporcional de los enfrentamientos informados. */
 export function TarjetaHistorial({
   h2h,
   home,
@@ -38,22 +55,27 @@ export function TarjetaHistorial({
   home: string;
   away: string;
 }) {
-  const total = h2h.homeWins + h2h.draws + h2h.awayWins || 1; // evita dividir entre 0
+  const total = h2h.homeWins + h2h.draws + h2h.awayWins || 1;
   const pct = (n: number) => `${(n / total) * 100}%`;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Historial directo (H2H)</CardTitle>
+    <Card className="border-slate-700 bg-slate-900/90">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-bold text-slate-200">
+          Historial Directo (H2H)
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm">
-        <div className="flex h-4 overflow-hidden rounded">
-          <div className="bg-green-600" style={{ width: pct(h2h.homeWins) }} />
-          <div className="bg-gray-400" style={{ width: pct(h2h.draws) }} />
-          <div className="bg-blue-600" style={{ width: pct(h2h.awayWins) }} />
+      <CardContent className="space-y-3 text-xs">
+        <div className="flex h-3 overflow-hidden rounded-full bg-slate-800">
+          <div className="bg-emerald-500" style={{ width: pct(h2h.homeWins) }} />
+          <div className="bg-amber-400" style={{ width: pct(h2h.draws) }} />
+          <div className="bg-rose-500" style={{ width: pct(h2h.awayWins) }} />
         </div>
-        <p>
-          {home}: {h2h.homeWins} · Empates: {h2h.draws} · {away}: {h2h.awayWins}
-        </p>
+        <div className="flex flex-wrap justify-between gap-2 text-slate-300">
+          <span>{home}: <strong>{h2h.homeWins}</strong></span>
+          <span>Empates: <strong>{h2h.draws}</strong></span>
+          <span>{away}: <strong>{h2h.awayWins}</strong></span>
+        </div>
       </CardContent>
     </Card>
   );
